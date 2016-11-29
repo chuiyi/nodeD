@@ -2,8 +2,8 @@
 var url = require('url');
 var fs = require('fs');
 var Crawler = require('crawler');
-// var mongoose = require('mongoose');
-var mongoose_js = require('./mongoose.js');
+var mongoose = require('mongoose');
+// var mongoose_js = require('./mongoose.js');
 
 // ================ crawler setting ================
 var crawler_dmm = {
@@ -36,7 +36,7 @@ var crawler_dmm = {
             if(array_href[x].indexOf('cid') > -1)
                 str_cid = array_href[x].replace('cid=', '');
         }
-        if (cid.length > 0) {
+        if (str_cid.length > 0) {
             Video.find({ cid: str_cid }, function (err, result) {
                 if (err) return console.error(err);
                 // console.log('video find successful!' + video_result);
@@ -231,6 +231,70 @@ function load() {
     //catches uncaught exceptions
     process.on('uncaughtException', exitHandler.bind(null, {exit:true}));
 }
+
+// ================ mongoose setting ================
+mongoose.connect('mongodb://chuiyi:iyiuhc@ds163417.mlab.com:63417/love-machine');
+var db = mongoose.connection;
+db.on('error', console.error.bind(console, 'connection error:'));
+db.once('open', function() {
+  // we're connected!
+});
+
+var videoSchema = mongoose.Schema({
+    title: String,
+    url_video: String,
+    url_image_cover: String,
+    description: String,
+    performer: [ { name: String, id: String } ],
+    date_sale_online: Date,
+    date_sale_stock: Date,
+    director: { name: String, id: String },
+    series: { name: String, id: String },
+    maker: { name: String, id: String },
+    cid: String,
+    url_image_sample: [ String ],
+});
+
+var Video = mongoose.model('Video', videoSchema);
+
+var actressSchema = mongoose.Schema({
+    id: String,
+    name: String,
+    url_image: String,
+    video: [ String ],
+});
+
+var Actress = mongoose.model('Actress', actressSchema);
+
+var makerSchema = mongoose.Schema({
+    id: String,
+    name: String,
+    video: [ String ],
+});
+
+var Maker = mongoose.model('Maker', makerSchema);
+
+var seriesSchema = mongoose.Schema({
+    id: String,
+    name: String,
+    video: [ String ],
+});
+
+var Series = mongoose.model('Series', seriesSchema);
+
+var directorSchema = mongoose.Schema({
+    id: String,
+    name: String,
+    video: [ String ],
+});
+
+var Director = mongoose.model('Director', directorSchema);
+
+var settingSchema = mongoose.Schema({
+    url_history: [ String ],
+});
+
+var Setting = mongoose.model('Setting', settingSchema);
 
 // ================ execute ================
 load();
